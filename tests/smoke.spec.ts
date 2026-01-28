@@ -1,27 +1,24 @@
-import { test, expect } from '@playwright/test';
-import { handleConsentIfPresent } from '../utils/consent';
+// tests/smoke.spec.ts
+
+// ✅ Import from our custom fixture module instead of @playwright/test directly.
+// This makes `{ app }` available in the test callback.
+import { test, expect } from './fixtures/appTest';
 
 test.describe('Automation Exercise - Smoke', () => {
-  test('home page loads and primary navigation is visible', async ({ page }) => {
-    // baseURL in config lets '/' resolve to https://automationexercise.com/
-    // domcontentloaded avoids waiting for every image/asset; assertions will auto-wait for UI.
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+  test('home page loads and primary navigation is visible', async ({ app }) => {
+    // ✅ Our helper does:
+    // 1) page.goto with domcontentloaded
+    // 2) handle consent popup if present
+    await app.goto('/');
 
-    // If a consent overlay appears, it may block interaction and hide elements.
-    // This helper is "best effort": it won't fail if no popup exists.
-    await handleConsentIfPresent(page);
-
-    // IMPORTANT:
-    // The page uses <h1><span>Automation</span>Exercise</h1> (no space in HTML),
-    // so we allow optional whitespace with \s*.
+    // ✅ `app.page` exposes the underlying Playwright Page for locators/assertions.
     await expect(
-      page.getByRole('heading', { level: 1, name: /Automation\s*Exercise/i })
+      app.page.getByRole('heading', { level: 1, name: /Automation\s*Exercise/i })
     ).toBeVisible({ timeout: 15000 });
 
-    // Nav links are real <a> elements (good for getByRole('link')).
-    await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Products' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Cart' })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Signup\s*\/\s*Login/i })).toBeVisible();
+    await expect(app.page.getByRole('link', { name: 'Home' })).toBeVisible();
+    await expect(app.page.getByRole('link', { name: 'Products' })).toBeVisible();
+    await expect(app.page.getByRole('link', { name: 'Cart' })).toBeVisible();
+    await expect(app.page.getByRole('link', { name: /Signup\s*\/\s*Login/i })).toBeVisible();
   });
 });
